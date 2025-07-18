@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manasa Velpula - Data Enthusiast Portfolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* Custom CSS for font and base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Dark mode styles (managed by JS adding/removing 'dark' class) */
+        .dark {
+            background-color: #1a202c; /* gray-900 */
+            color: #e2e8f0; /* gray-100 */
+        }
+
+        .light {
+            background-color: #f7fafc; /* gray-50 */
+            color: #1a202c; /* gray-900 */
+        }
+
+        /* Fixed background for 3D canvas */
+        #three-canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important; /* Ensure canvas takes full width */
+            height: 100% !important; /* Ensure canvas takes full height */
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* gray-800 */
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #f97316; /* orange-500 */
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1a202c; /* gray-900 */
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #fb923c; /* orange-400 */
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark .modal-content {
+            background-color: #1f2937; /* gray-800 */
+            color: #e2e8f0; /* gray-100 */
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568; /* gray-700 */
+        }
+        .dark .modal-close-button {
+            color: #cbd5e0; /* gray-300 */
+        }
+
+        .modal-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="light">
+    <!-- 3D Canvas Background Container -->
+    <div id="three-canvas-container"></div>
+
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="fixed top-4 right-4 p-3 rounded-full shadow-lg z-50 transition-colors duration-300 bg-gray-200 text-gray-800 hover:bg-gray-300">
+        <!-- Sun Icon (Lucide-react equivalent SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2"/>
+            <path d="M12 20v2"/>
+            <path d="M4.93 4.93l1.41 1.41"/>
+            <path d="M17.66 17.66l1.41 1.41"/>
+            <path d="M2 12h2"/>
+            <path d="M20 12h2"/>
+            <path d="M6.34 17.66l-1.41 1.41"/>
+            <path d="M19.07 4.93l-1.41 1.41"/>
+        </svg>
+    </button>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 z-40 p-4 shadow-lg transition-colors duration-300 bg-white bg-opacity-90">
+        <div class="container mx-auto flex justify-center space-x-4">
+            <button onclick="scrollToSection('home')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- User Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span class="hidden sm:inline">Home</span>
+            </button>
+            <button onclick="scrollToSection('summary')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- Book Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                </svg>
+                <span class="hidden sm:inline">Summary</span>
+            </button>
+            <button onclick="scrollToSection('projects')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- Briefcase Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-briefcase">
+                    <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <span class="hidden sm:inline">Projects</span>
+            </button>
+            <button onclick="scrollToSection('skills')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- Code Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                </svg>
+                <span class="hidden sm:inline">Skills</span>
+            </button>
+            <button onclick="scrollToSection('education')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- GraduationCap Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap">
+                    <path d="M21.43 12.793l-8.31 8.31a2.12 2.12 0 0 1-3-.01l-6.36-6.36a2.12 2.12 0 0 1 0-3l8.31-8.31a2.12 2.12 0 0 1 3 0l6.36 6.36a2.12 2.12 0 0 1 .01 3z"/>
+                    <path d="M15 17.5l-3.5-3.5"/>
+                    <path d="M12.5 10.5l3.5 3.5"/>
+                    <path d="M10 13l-3.5-3.5"/>
+                    <path d="M13.5 6.5l3.5 3.5"/>
+                </svg>
+                <span class="hidden sm:inline">Education</span>
+            </button>
+            <button onclick="scrollToSection('certifications')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- Award Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award">
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                </svg>
+                <span class="hidden sm:inline">Certifications</span>
+            </button>
+            <button onclick="scrollToSection('contact')" class="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-orange-600 hover:bg-gray-100 font-medium">
+                <!-- Mail Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+                <span class="hidden sm:inline">Contact</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-24 relative z-10">
+        <!-- Home Section -->
+        <section id="home" class="min-h-[calc(100vh-6rem)] flex flex-col justify-center items-center text-center py-20">
+            <div class="relative z-10">
+                <h1 class="text-6xl sm:text-7xl md:text-8xl font-extrabold leading-tight mb-4">
+                    <span class="text-orange-600 dark:text-orange-400">MANASA</span> VELPULA
+                </h1>
+                <p class="text-xl sm:text-2xl mb-8 max-w-3xl mx-auto">
+                    An ambitious <span class="font-semibold">Data Enthusiast</span> eager to apply knowledge of descriptive and inferential statistics to real-world challenges. Skilled in data manipulation, analysis, and presenting insights in a clear and impactful manner.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="https://www.linkedin.com/in/manasa-velpula-653bb9358/" target="_blank" rel="noopener noreferrer" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- LinkedIn Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin mr-2">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                            <rect width="4" height="12" x="2" y="9"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                        LinkedIn
+                    </a>
+                    <a href="https://github.com/velpulamanasa" target="_blank" rel="noopener noreferrer" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- GitHub Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github mr-2">
+                            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.44-.78-3.46 0 0-1 0-3 1.5-2.64-1.5-6-1.5-9 0C3 4 2 4 2 4c-.5 1.02-.92 2.22-.78 3.47 0 4.5 3 6.5 6 6.5-.88.16-1.5 2-1.5 3.5v4"/>
+                            <path d="M9 18c-4.51 2-5-2-7-2"/>
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="mailto:manasavelpula8080@gmail.com" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- Mail Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2">
+                            <rect width="20" height="16" x="2" y="4" rx="2"/>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                        </svg>
+                        Email Me
+                    </a>
+                    <a href="tel:+918080986247" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- MessageSquare Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square mr-2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Call Me
+                    </a>
+                    <a href="https://placehold.co/600x400/FF0000/FFFFFF?text=MANASA+VELPULA+RESUME" download="Manasa_Velpula_Resume.pdf" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- Download Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download mr-2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        Download Resume
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section id="summary" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Summary</h2>
+            <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                <p class="text-lg leading-relaxed text-left">
+                    An ambitious Data Enthusiast eager to apply knowledge of descriptive and inferential statistics to real-world challenges. Skilled in data manipulation, analysis, and presenting insights in a clear and impactful manner. Passionate about leveraging data science to promote sustainability, accessibility, and ethical business practices.
+                </p>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Projects</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 cursor-pointer" onclick="openProjectModal('fake-news-detection')">
+                    <img src="https://placehold.co/600x400/FF5733/FFFFFF?text=Fake+News+Detection" alt="Fake News Detection Project" class="modal-image mb-4">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Sparkles Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M9.9 10.9c.3.9-.7 1.6-1.5 1.4L4.2 11c-.8-.2-1.3-.9-1.1-1.7.2-.8.9-1.3 1.7-1.1L8.5 9c.8.2 1.5-.5 1.3-1.3L9.2 3.7c-.2-.8.5-1.5 1.3-1.3.8.2 1.5.9 1.3 1.7L10.6 8c-.2.8.5 1.5 1.3 1.3l4.3-1.1c.8-.2 1.5.5 1.3 1.3-.2.8-.9 1.3-1.7 1.1L13 10.6c-.8-.2-1.5.5-1.3 1.3l.6 4.3c.2.8-.5 1.5-1.3 1.3-.8-.2-1.5-.9-1.3-1.7L10.6 13c.2-.8-.5-1.5-1.3-1.3z"/>
+                            <path d="M14.7 17.7c.3.9-.7 1.6-1.5 1.4L9.4 17c-.8-.2-1.3-.9-1.1-1.7.2-.8.9-1.3 1.7-1.1L13.7 16c.8.2 1.5-.5 1.3-1.3l.6-4.3c.2-.8-.5 1.5-1.3-1.3-.8.2-1.5.9-1.3 1.7l-.6 4.3c.2.8-.5 1.5-1.3 1.3z"/>
+                        </svg>
+                        Fake News Detection using Machine Learning
+                    </h3>
+                    <p class="text-left">Built a model to classify fake news using text preprocessing (Regex) and TF-IDF. Applied Logistic Regression, SVM, and Naive Bayes to achieve high accuracy.</p>
+                    <p class="text-sm mt-2 text-gray-400 text-left">Skills used: Python, Scikit-learn, Regex, Text Classification</p>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 cursor-pointer" onclick="openProjectModal('face-recognition')">
+                    <img src="https://placehold.co/600x400/33FF57/FFFFFF?text=Face+Recognition" alt="Face Recognition Project" class="modal-image mb-4">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Users Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Face Recognition & Attendance System
+                    </h3>
+                    <p class="text-left">Built a real-time face recognition system using OpenCV to automate student attendance, with attendance data stored directly in an Excel file.</p>
+                    <p class="text-sm mt-2 text-gray-400 text-left">Skills used: Python, OpenCV, Face Recognition</p>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 cursor-pointer" onclick="openProjectModal('sales-data-analysis')">
+                    <img src="https://placehold.co/600x400/3357FF/FFFFFF?text=Sales+Data+Analysis" alt="Sales Data Analysis Project" class="modal-image mb-4">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- BarChart Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart text-orange-600 dark:text-orange-400 mr-2">
+                            <line x1="12" x2="12" y1="20" y2="10"/>
+                            <line x1="18" x2="18" y1="20" y2="4"/>
+                            <line x1="6" x2="6" y1="20" y2="16"/>
+                            <line x1="2" x2="22" y1="20" y2="20"/>
+                        </svg>
+                        Sales Data Analysis using Power BI and Python
+                    </h3>
+                    <p class="text-left">Analyzed Flipkart sales data with Power BI and Python EDA to visualize product trends, profits, and customer segments.</p>
+                    <p class="text-sm mt-2 text-gray-400 text-left">Skills used: Power BI, DAX, Python, Pandas, Matplotlib, Seaborn</p>
+                </div>
+                <!-- New Project: Crop Prediction Model -->
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 cursor-pointer" onclick="openProjectModal('crop-prediction-model')">
+                    <img src="https://placehold.co/600x400/28a745/FFFFFF?text=Crop+Prediction" alt="Crop Prediction Model Project" class="modal-image mb-4">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Leaf Icon (representing agriculture/crops) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 18 2c1 2.4 2 5.4 1 8.5A6 6 0 0 1 12 21c-2.7 0-5.5-.7-7-2v-7a8 8 0 1 1 16 0v2"/>
+                        </svg>
+                        Crop Prediction Model
+                    </h3>
+                    <p class="text-left">Designed and implemented a crop prediction system that suggests the most suitable crop for cultivation based on environmental and soil conditions.</p>
+                    <p class="text-sm mt-2 text-gray-400 text-left">Skills used: Flask, HTML, CSS, Scikit-learn, Random Forest, Logistic Regression, Pandas, NumPy</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Skills</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Code Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code text-orange-600 dark:text-orange-400 mr-2">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                        Programming
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>Python</li>
+                        <li>Java</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Monitor Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor text-orange-600 dark:text-orange-400 mr-2">
+                            <rect width="20" height="14" x="2" y="3" rx="2"/>
+                            <path d="M12 17v4"/>
+                            <path d="M8 21h8"/>
+                        </svg>
+                        Visualization Tools
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>Power BI</li>
+                        <li>Matplotlib</li>
+                        <li>Seaborn</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Brain Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                            <path d="M12 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M12 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M12 24a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M12 8v8"/>
+                            <path d="M8 12h8"/>
+                        </svg>
+                        Data Analysis & Machine Learning
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>Machine Learning</li>
+                        <li>Statistical Modeling</li>
+                        <li>Data Analysis</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- LayoutDashboard Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard text-orange-600 dark:text-orange-400 mr-2">
+                            <rect width="7" height="9" x="3" y="3" rx="1"/>
+                            <rect width="7" height="5" x="14" y="3" rx="1"/>
+                            <rect width="7" height="9" x="14" y="12" rx="1"/>
+                            <rect width="7" height="5" x="3" y="16" rx="1"/>
+                        </svg>
+                        Web Dev
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>HTML, CSS</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Database Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database text-orange-600 dark:text-orange-400 mr-2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                            <path d="M3 12A9 3 0 0 0 21 12v-1A9 3 0 0 0 3 11z"/>
+                            <path d="M3 19A9 3 0 0 0 21 19v-1A9 3 0 0 0 3 18z"/>
+                        </svg>
+                        Databases
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>MySQL</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- GitBranch Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch text-orange-600 dark:text-orange-400 mr-2">
+                            <line x1="6" x2="6" y1="3" y2="15"/>
+                            <path d="M18 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M6 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M18 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path d="M18 6v.01"/>
+                            <path d="M18 18v.01"/>
+                            <path d="M6 18v.01"/>
+                        </svg>
+                        Version Control
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-left">
+                        <li>Git GitHub</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Education</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-2 flex items-center text-left">
+                        <!-- GraduationCap Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M21.43 12.793l-8.31 8.31a2.12 2.12 0 0 1-3-.01l-6.36-6.36a2.12 2.12 0 0 1 0-3l8.31-8.31a2.12 2.12 0 0 1 3 0l6.36 6.36a2.12 2.12 0 0 1 .01 3z"/>
+                            <path d="M15 17.5l-3.5-3.5"/>
+                            <path d="M12.5 10.5l3.5 3.5"/>
+                            <path d="M10 13l-3.5-3.5"/>
+                            <path d="M13.5 6.5l3.5 3.5"/>
+                        </svg>
+                        Bachelor of Science in Information Technology
+                    </h3>
+                    <p class="text-lg font-semibold text-left">Specialization: Data Science</p>
+                    <p class="text-left">Ajeenkya DY Patil University, Lohegaon, Pune</p>
+                    <p class="text-sm text-gray-400 text-left">August 2022 - May 2026</p>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-2 flex items-center text-left">
+                        <!-- GraduationCap Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M21.43 12.793l-8.31 8.31a2.12 2.12 0 0 1-3-.01l-6.36-6.36a2.12 2.12 0 0 1 0-3l8.31-8.31a2.12 2.12 0 0 1 3 0l6.36 6.36a2.12 2.12 0 0 1 .01 3z"/>
+                            <path d="M15 17.5l-3.5-3.5"/>
+                            <path d="M12.5 10.5l3.5 3.5"/>
+                            <path d="M10 13l-3.5-3.5"/>
+                            <path d="M13.5 6.5l3.5 3.5"/>
+                        </svg>
+                        Higher Secondary Certificate (HSC)
+                    </h3>
+                    <p class="text-lg font-semibold text-left">Class XII</p>
+                    <p class="text-left">Don Bosco Junior College, Yerwada, Pune</p>
+                    <p class="text-sm text-gray-400 text-left">Year of Completion: 2022</p>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-2 flex items-center text-left">
+                        <!-- GraduationCap Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap text-orange-600 dark:text-orange-400 mr-2">
+                            <path d="M21.43 12.793l-8.31 8.31a2.12 2.12 0 0 1-3-.01l-6.36-6.36a2.12 2.12 0 0 1 0-3l8.31-8.31a2.12 2.12 0 0 1 3 0l6.36 6.36a2.12 2.12 0 0 1 .01 3z"/>
+                            <path d="M15 17.5l-3.5-3.5"/>
+                            <path d="M12.5 10.5l3.5 3.5"/>
+                            <path d="M10 13l-3.5-3.5"/>
+                            <path d="M13.5 6.5l3.5 3.5"/>
+                        </svg>
+                        Secondary School Certificate (SSC)
+                    </h3>
+                    <p class="text-lg font-semibold text-left">Class X</p>
+                    <p class="text-left">Pragathi English Medium School, Dhanori, Pune</p>
+                    <p class="text-sm text-gray-400 text-left">Year of Completion: 2020</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Certifications Section -->
+        <section id="certifications" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Certifications & Additional Information</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Award Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award text-orange-600 dark:text-orange-400 mr-2">
+                            <circle cx="12" cy="8" r="6"/>
+                            <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                        </svg>
+                        Certifications
+                    </h3>
+                    <ul class="list-disc list-inside space-y-2 text-left">
+                        <li>Career Essentials in Generative AI - Microsoft & LinkedIn</li>
+                        <li>Image Segmentation with Mean Shift Clustering - Cognitive Class (IBM)</li>
+                        <li>Data Science and Machine Learning - Infosys Springboard</li>
+                    </ul>
+                </div>
+                <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700">
+                    <h3 class="text-2xl font-bold mb-3 flex items-center text-left">
+                        <!-- Globe Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe text-orange-600 dark:text-orange-400 mr-2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                            <path d="M2 12h20"/>
+                        </svg>
+                        Languages
+                    </h3>
+                    <ul class="list-disc list-inside space-y-2 text-left">
+                        <li>English</li>
+                        <li>Telugu</li>
+                        <li>Hindi</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20">
+            <h2 class="section-title text-4xl font-extrabold mb-8 text-center relative z-10 text-orange-600 dark:text-orange-400">Connecting with Manasa</h2>
+            <div class="common-card p-6 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-2xl bg-white text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border dark:border-gray-700 max-w-2xl mx-auto text-center">
+                <p class="text-lg mb-6 text-left">
+                    Manasa is available for collaboration and new opportunities. Connect via email or explore her work on GitHub and LinkedIn.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <a href="mailto:manasavelpula8080@gmail.com" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- Mail Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2">
+                            <rect width="20" height="16" x="2" y="4" rx="2"/>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                        </svg>
+                        manasavelpula8080@gmail.com
+                    </a>
+                    <a href="https://github.com/velpulamanasa" target="_blank" rel="noopener noreferrer" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- GitHub Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github mr-2">
+                            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.44-.78-3.46 0 0-1 0-3 1.5-2.64-1.5-6-1.5-9 0C3 4 2 4 2 4c-.5 1.02-.92 2.22-.78 3.47 0 4.5 3 6.5 6 6.5-.88.16-1.5 2-1.5 3.5v4"/>
+                            <path d="M9 18c-4.51 2-5-2-7-2"/>
+                        </svg>
+                        velpulamanasa
+                    </a>
+                    <a href="https://www.linkedin.com/in/manasa-velpula-653bb9358/" target="_blank" rel="noopener noreferrer" class="link-button inline-flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700">
+                        <!-- LinkedIn Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin mr-2">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                            <rect width="4" height="12" x="2" y="9"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                        Manasa Velpula
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center relative z-10 bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-400">
+        <p>&copy; <span id="currentYear"></span> Manasa Velpula. All rights reserved.</p>
+        <p class="text-sm mt-2">Designed with passion for data science.</p>
+    </footer>
+
+    <!-- Project Modal Structure -->
+    <div id="projectModal" class="modal-overlay">
+        <div class="modal-content common-card">
+            <button class="modal-close-button" onclick="closeProjectModal()">&times;</button>
+            <h3 id="modalProjectTitle" class="text-3xl font-bold mb-4 text-orange-600 dark:text-orange-400"></h3>
+            <img id="modalProjectImage" src="" alt="Project Image" class="modal-image">
+            <p id="modalProjectDescription" class="text-lg leading-relaxed mb-4 text-left"></p>
+            <p id="modalProjectSkills" class="text-sm text-gray-500 dark:text-gray-400 text-left"></p>
+        </div>
+    </div>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Dark Mode Toggle Logic
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+        let isDarkMode = true; // Initial state matches the dark background of the PDF
+
+        // Function to apply theme
+        function applyTheme() {
+            if (isDarkMode) {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                // Update toggle icon to Moon
+                darkModeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                `;
+                darkModeToggle.classList.remove('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+                darkModeToggle.classList.add('bg-gray-700', 'text-white', 'hover:bg-gray-600');
+
+                // Update nav bar colors for dark mode
+                document.querySelector('nav').classList.remove('bg-white');
+                document.querySelector('nav').classList.add('bg-gray-900');
+                document.querySelector('nav').classList.add('bg-opacity-90');
+
+                // Update nav button colors for dark mode
+                document.querySelectorAll('nav button').forEach(button => {
+                    button.classList.remove('text-gray-700', 'hover:text-orange-600', 'hover:bg-gray-100');
+                    button.classList.add('text-gray-300', 'hover:text-orange-400', 'hover:bg-gray-800');
+                });
+
+                 // Update section title colors for dark mode
+                document.querySelectorAll('.section-title').forEach(title => {
+                    title.classList.remove('text-orange-600');
+                    title.classList.add('text-orange-400');
+                });
+
+                // Update card colors for dark mode
+                document.querySelectorAll('.common-card').forEach(card => {
+                    card.classList.remove('bg-white', 'text-gray-800', 'border-gray-200');
+                    card.classList.add('bg-gray-800', 'text-gray-100', 'border-gray-700');
+                });
+
+                // Update link colors for dark mode
+                document.querySelectorAll('.link-button').forEach(link => {
+                    link.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+                    link.classList.add('bg-orange-600', 'hover:bg-orange-700');
+                });
+
+                // Update footer colors for dark mode
+                document.querySelector('footer').classList.remove('bg-gray-100', 'text-gray-600');
+                document.querySelector('footer').classList.add('bg-gray-900', 'text-gray-400');
+
+                // Update modal content colors for dark mode
+                document.querySelector('.modal-content').classList.add('dark');
+
+
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                // Update toggle icon to Sun
+                darkModeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2"/>
+                        <path d="M12 20v2"/>
+                        <path d="M4.93 4.93l1.41 1.41"/>
+                        <path d="M17.66 17.66l1.41 1.41"/>
+                        <path d="M2 12h2"/>
+                        <path d="M20 12h2"/>
+                        <path d="M6.34 17.66l-1.41 1.41"/>
+                        <path d="M19.07 4.93l-1.41 1.41"/>
+                    </svg>
+                `;
+                darkModeToggle.classList.remove('bg-gray-700', 'text-white', 'hover:bg-gray-600');
+                darkModeToggle.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+
+                // Update nav bar colors for light mode
+                document.querySelector('nav').classList.remove('bg-gray-900');
+                document.querySelector('nav').classList.add('bg-white');
+
+                // Update nav button colors for light mode
+                document.querySelectorAll('nav button').forEach(button => {
+                    button.classList.remove('text-gray-300', 'hover:text-orange-400', 'hover:bg-gray-800');
+                    button.classList.add('text-gray-700', 'hover:text-orange-600', 'hover:bg-gray-100');
+                });
+
+                // Update section title colors for light mode
+                document.querySelectorAll('.section-title').forEach(title => {
+                    title.classList.remove('text-orange-400');
+                    title.classList.add('text-orange-600');
+                });
+
+                // Update card colors for light mode
+                document.querySelectorAll('.common-card').forEach(card => {
+                    card.classList.remove('bg-gray-800', 'text-gray-100', 'border-gray-700');
+                    card.classList.add('bg-white', 'text-gray-800', 'border-gray-200');
+                });
+
+                // Update link colors for light mode
+                document.querySelectorAll('.link-button').forEach(link => {
+                    link.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+                    link.classList.add('bg-orange-500', 'hover:bg-orange-600');
+                });
+
+                // Update footer colors for light mode
+                document.querySelector('footer').classList.remove('bg-gray-900', 'text-gray-400');
+                document.querySelector('footer').classList.add('bg-gray-100', 'text-gray-600');
+
+                // Update modal content colors for light mode
+                document.querySelector('.modal-content').classList.remove('dark');
+            }
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            applyTheme();
+        });
+
+        // Apply initial theme
+        applyTheme();
+
+        // Smooth Scrolling Logic
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Three.js Scene Setup
+        let scene, camera, renderer, particlesMesh, starsMesh;
+
+        function initThreeJS() {
+            const container = document.getElementById('three-canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            // Ambient Light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Point Light
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Particles
+            const count = 2000;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+            const color = new THREE.Color();
+            const baseColor = new THREE.Color(0xFFA500); // Orange
+            const accentColor = new THREE.Color(0xFFD700); // Gold
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 20;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+
+                color.lerpColors(baseColor, accentColor, Math.random());
+                colors[i * 3] = color.r;
+                colors[i * 3 + 1] = color.g;
+                colors[i * 3 + 2] = color.b;
+            }
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+            });
+
+            particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            // Stars (simplified from Drei's Stars)
+            const starCount = 5000;
+            const starPositions = new Float32Array(starCount * 3);
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0xFFFFFF,
+                size: 0.02,
+                transparent: true,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending
+            });
+
+            for (let i = 0; i < starCount; i++) {
+                starPositions[i * 3] = (Math.random() - 0.5) * 200; // Radius 100 * 2
+                starPositions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+                starPositions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+            }
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            starsMesh = new THREE.Points(starGeometry, starMaterial);
+            scene.add(starsMesh);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (particlesMesh) {
+                particlesMesh.rotation.y += 0.0005;
+                particlesMesh.rotation.x += 0.0002;
+            }
+            if (starsMesh) {
+                starsMesh.rotation.y += 0.0001;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize Three.js when the window loads
+        window.onload = function() {
+            initThreeJS();
+            animate();
+        };
+
+        // Project Modal Logic
+        const projectsData = {
+            "fake-news-detection": {
+                title: "Fake News Detection using Machine Learning",
+                image: "https://placehold.co/600x400/FF5733/FFFFFF?text=Fake+News+Detection",
+                description: "Developed a robust model for classifying fake news articles. Utilized text preprocessing techniques like Regex and TF-IDF for feature extraction. Achieved high accuracy by applying various machine learning algorithms including Logistic Regression, Support Vector Machines (SVM), and Naive Bayes. This project demonstrates strong skills in natural language processing and supervised learning.",
+                skills: "Python, Scikit-learn, Regex, Text Classification"
+            },
+            "face-recognition": {
+                title: "Face Recognition & Attendance System",
+                image: "https://placehold.co/600x400/33FF57/FFFFFF?text=Face+Recognition",
+                description: "Engineered a real-time face recognition system using OpenCV to automate student attendance tracking. The system captures and processes video feeds to identify students and logs attendance directly into an Excel file, significantly streamlining the attendance process. This project highlights expertise in computer vision and practical application development.",
+                skills: "Python, OpenCV, Face Recognition"
+            },
+            "sales-data-analysis": {
+                title: "Sales Data Analysis using Power BI and Python",
+                image: "https://placehold.co/600x400/3357FF/FFFFFF?text=Sales+Data+Analysis",
+                description: "Conducted comprehensive exploratory data analysis (EDA) on Flipkart sales data using Python (Pandas, Matplotlib, Seaborn) and developed interactive dashboards with Power BI. Visualized product trends, identified profit margins, and segmented customer demographics to provide actionable business insights. This project showcases proficiency in data visualization, business intelligence, and data-driven decision making.",
+                skills: "Power BI, DAX, Python, Pandas, Matplotlib, Seaborn"
+            },
+            "crop-prediction-model": {
+                title: "Crop Prediction Model using Machine Learning and Flask",
+                image: "https://placehold.co/600x400/28a745/FFFFFF?text=Crop+Prediction",
+                description: "Designed and implemented a crop prediction system that suggests the most suitable crop for cultivation based on environmental and soil conditions. The model takes user inputs such as nitrogen, phosphorus, potassium levels, temperature, humidity, pH value, and rainfall. Using machine learning algorithms like Random Forest and Logistic Regression, it analyzes patterns in agricultural datasets to make accurate predictions. A Flask backend processes input data and communicates with the trained model, while the frontend interface built with HTML and CSS allows users to interact with the system easily. This project highlights the intersection of data science and agriculture, enabling smarter, sustainable farming decisions.",
+                skills: "Flask, HTML, CSS, Scikit-learn, Random Forest, Logistic Regression, Pandas, NumPy"
+            }
+        };
+
+        function openProjectModal(projectId) {
+            const project = projectsData[projectId];
+            if (project) {
+                document.getElementById('modalProjectTitle').textContent = project.title;
+                document.getElementById('modalProjectImage').src = project.image;
+                document.getElementById('modalProjectDescription').textContent = project.description;
+                document.getElementById('modalProjectSkills').textContent = Skills used: ${project.skills};
+                document.getElementById('projectModal').classList.add('show');
+            }
+        }
+
+        function closeProjectModal() {
+            document.getElementById('projectModal').classList.remove('show');
+        }
+
+        // Close modal when clicking outside content
+        document.getElementById('projectModal').addEventListener('click', (event) => {
+            if (event.target === document.getElementById('projectModal')) {
+                closeProjectModal();
+            }
+        });
+    </script>
+</body>
+</html> 
